@@ -4,7 +4,16 @@ const app = express();
 const morgan = require('morgan');
 //trabalhar com requisição no corpo da requisição
 const bodyParser = require('body-parser');
+//aceitar conexão externar
+const cors = require("cors");
 
+const login = require('./src/middleware/login');
+const user = require('./src/controllers/usuarios')
+const restricao = require('./src/middleware/restricao_api')
+
+//aceitar conexão externar
+app.use(cors());
+app.use(express.json());
 
 //TODOS OS MODULOS QUE SERÃO UTILIZADOS
 app.use(morgan("dev"));
@@ -15,39 +24,21 @@ app.use(bodyParser.json());
 
 
 //APLICAR RESTRIÇÃO PARA QUEM VAI ACESSAR A API
-app.use((req, res, next) =>{
-    //servidores que vão ser aceito
-    res.header('Access-Control-Allow-Origin', '*');
-    //os tipos de cabeçalho aceito
-    res.header(
-        'Access-Control-Allow-Header', 
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-    );
-    //os metodos que vão poder ser retornado
-    if(req.method === 'OPTIONS'){
-        res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-        return res.status(200).send({})
-    }
-
-    next();
-})
+app.use(restricao.restricao)
 
 //AQUE VAI FICAR TODAS AS ROTAS
-app.get("/auth/login", (req, res, next) => {
-    res.send("<h1>OK Vamos fazer Login AKI</h1>")
-});
+app.post("/user/login",user.login)
 
-app.get("/", (req, res) =>{
-    res.send("Olá sou seu aplicativo EX");
-});
+//para se cadastrar
+app.post("/user/cadastro",user.register)
 
+//AQUE VAMOS FAZER A ROTA HOME PRIVADA
+app.get("/", login.obrigatorio, user.user_home);
 
+//RETORNAR TODOS OS USUARIOS
+app.get("/user/", user.user_get);
 
 //QUANDO NÃO ENCONTRAR NENHUMA ROTA EXISTENTE
-app.use((req, res, next) => {
-    const erro = new Error('Não encontrado');
-    erro.status = 404;
-    next(erro);
-})
+app.use(user.not);
 
 module.exports = app;
