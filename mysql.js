@@ -1,11 +1,12 @@
 const mysql = require('mysql2')
 
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    database: 'ex',
-    password: '12345',
-    port: '3306',
+    "connectionLimit": process.env.MYSQL_LIMIT,
+    "user": process.env.MYSQL_USER,
+    "password": process.env.MYSQL_PASSWORD,
+    "database": process.env.MYSQL_DATABASE,
+    "host": process.env.MYSQL_HOST,
+    "port": process.env.MYSQL_PORT
 });
 
 module.exports = connection;
